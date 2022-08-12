@@ -48,6 +48,11 @@ dist
 .eggs
 .pypirc
 
+## build directories
+out/
+work/
+deps/
+
 ## tox testing tool
 .tox
 # rope
