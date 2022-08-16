@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 WASI_SDK_PATH="${WASI_SDK_PATH:-/opt/wasi-sdk}"
 PROJECT_DIR=$(pwd)
 PYTHON_TAG="3.10.6"
@@ -67,6 +69,7 @@ build() {
         rm -f Modules/Setup.local
         ./configure --disable-test-modules \
     	        --with-ensurepip=no \
+    	        --disable-test-modules \
     	        --prefix="${PYTHON_DIR}/inst/${PYTHON_VER}" \
     	        --exec-prefix="${PYTHON_DIR}/inst/${PYTHON_VER}" && \
             make clean && \
@@ -116,19 +119,20 @@ build() {
     echo "$(echo "$(which clang)" | xargs dirname)/readelf" > "${WORK_DIR}/build/bin/wasm32-wasi-readelf"
     chmod +x "${WORK_DIR}/build/bin/wasm32-wasi-readelf"
 
-    cp ${WASI_SDK_PATH}/share/misc/config.sub . && \
-       cp ${WASI_SDK_PATH}/share/misc/config.guess . && \
-       autoconf -f && \
-       ./configure --host=wasm32-wasi --build=x86_64-pc-linux-gnu \
-                   --with-build-python=${PYTHON_DIR}/inst/${PYTHON_VER}/bin/python${PYTHON_VER} \
-                   --with-ensurepip=no \
-                   --disable-ipv6 --enable-big-digits=30 --with-suffix=.wasm \
-                   --with-freeze-module=./build/Programs/_freeze_module \
-    	       --prefix=${INSTALL_PREFIX}/wasi-python && \
-       make clean && \
-       rm -f python.wasm && \
-       make -j && \
-       make install
+    cp ${WASI_SDK_PATH}/share/misc/config.sub .
+    cp ${WASI_SDK_PATH}/share/misc/config.guess .
+    autoconf -f
+    ./configure --host=wasm32-wasi --build=x86_64-pc-linux-gnu \
+                --with-build-python=${PYTHON_DIR}/inst/${PYTHON_VER}/bin/python${PYTHON_VER} \
+                --with-ensurepip=no \
+                --disable-test-modules \
+                --disable-ipv6 --enable-big-digits=30 --with-suffix=.wasm \
+                --with-freeze-module=./build/Programs/_freeze_module \
+ 	       --prefix=${INSTALL_PREFIX}/wasi-python
+    make clean
+    rm -f python.wasm
+    make -j
+    make install
 
     rm -f "${PYTHON_DIR}/Modules/Setup.local"
 
