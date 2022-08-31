@@ -1,0 +1,23 @@
+--- a/Programs/python.c
++++ b/Programs/python.c
+@@ -1,6 +1,9 @@
+ /* Minimal main program -- everything is loaded from the library */
+ 
+ #include "Python.h"
++#include <unistd.h>
++#include <stdlib.h>
++#include <wasi_ext_lib.h>
+ 
+ #ifdef MS_WINDOWS
+ int
+@@ -12,6 +15,10 @@
+ int
+ main(int argc, char **argv)
+ {
++    const size_t CWD_BUF_SIZE = 256;
++    char cwd[CWD_BUF_SIZE];
++    if (wasi_ext_getcwd(cwd, CWD_BUF_SIZE) == 0) wasi_ext_chdir(cwd);
++    chdir(cwd);
+     return Py_BytesMain(argc, argv);
+ }
+ #endif

@@ -9,8 +9,11 @@ DEPS_DIR="$PROJECT_DIR/deps"
 WORK_DIR="$PROJECT_DIR/work"
 PYTHON_DIR="$WORK_DIR/cpython-$PYTHON_TAG"
 WASIX_DIR="$DEPS_DIR/wasix"
-LIB_DIR="$PROJECT_DIR/docker/lib"
-INCLUDE_DIR="$PROJECT_DIR/docker/include"
+
+WASI_EXT_LIB_DIR="$DEPS_DIR/wasm_ext_lib"
+LIB_DIR="$PROJECT_DIR/lib"
+INCLUDE_DIR="$PROJECT_DIR/include"
+
 INSTALL_PREFIX="$PROJECT_DIR/out"
 
 clean() {
@@ -57,6 +60,17 @@ get_deps() {
         tar -xf $DEPS_DIR/wabt-1.0.29-ubuntu.tar.gz -C $DEPS_DIR
         rm $DEPS_DIR/wabt-1.0.29-ubuntu.tar.gz
     fi
+
+    if [[ ! -d $WASI_EXT_LIB_DIR ]]; then
+        echo "Downloading wasi ext lib"
+        git clone https://github.com/antmicro/wasi_ext_lib $WASI_EXT_LIB_DIR
+        cd $WASI_EXT_LIB_DIR/c_lib && make
+        cd $PROJECT_DIR
+    fi
+
+    # Python checks for this, but doesn't seem to use it.
+    touch $WASI_SDK_PATH/bin/wasm32-wasi-readelf && \
+    chmod +x $WASI_SDK_PATH/bin/wasm32-wasi-readelf
 }
 
 build() {
@@ -89,8 +103,9 @@ build() {
 
         cp "${PROJECT_DIR}/Setup.local" "${PYTHON_DIR}/Modules/Setup.local"
 
-        # Apply patches
-        patch -p1 -N -r- < ${PROJECT_DIR}/patches/configure.ac.patch
+        # Apply patches (some of them don't need to match)
+        patch -p1 -N -r- < ${PROJECT_DIR}/patches/configure.ac.patch || true
+        patch -p1 -N -r- < ${PROJECT_DIR}/patches/python.c.patch
 
         if [[ -f "${PYTHON_DIR}/Modules/_zoneinfo.c" ]]; then
             patch -p1 -N -r- < ${PROJECT_DIR}/patches/_zoneinfo.c.patch
@@ -106,10 +121,12 @@ build() {
     export CFLAGS="-g -D_WASI_EMULATED_GETPID -D_WASI_EMULATED_SIGNAL -D_WASI_EMULATED_PROCESS_CLOCKS \
         -I$INCLUDE_DIR -I${WASIX_DIR}/include -isystem ${WASIX_DIR}/include \
         -I${WASI_SDK_PATH}/share/wasi-sysroot/include -I${PROJECT_DIR}/docker/include \
+        -I${WASI_EXT_LIB_DIR}/c_lib/ \
         --sysroot=${WASI_SDK_PATH}/share/wasi-sysroot"
     export CPPFLAGS="${CFLAGS}"
     export LIBS="${LIBS} -L$LIB_DIR -L${WASIX_DIR} -lwasix \
         -L${WASI_SDK_PATH}/share/wasi-sysroot/lib/wasm32-wasi -lwasi-emulated-signal \
+        -L${WASI_EXT_LIB_DIR}/c_lib/bin -lwasi_ext_lib \
         -L${PROJECT_DIR}/docker/lib --sysroot=${WASI_SDK_PATH}/share/wasi-sysroot"
     export PATH=${PYTHON_DIR}/inst/${PYTHON_VER}/bin:$WORK_DIR/build/bin:${PATH}
 
