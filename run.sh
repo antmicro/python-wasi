@@ -1,20 +1,18 @@
 #!/bin/bash
 
-set -e
-
-WASI_SDK_PATH="${WASI_SDK_PATH:-/opt/wasi-sdk}"
 PROJECT_DIR=$(pwd)
 PYTHON_TAG="3.10.6"
 DEPS_DIR="$PROJECT_DIR/deps"
+[[ -z $WASI_SDK_PATH ]] && export WASI_SDK_PATH="${DEPS_DIR}/wasi-sdk"
 WORK_DIR="$PROJECT_DIR/work"
 PYTHON_DIR="$WORK_DIR/cpython-$PYTHON_TAG"
 WASIX_DIR="$DEPS_DIR/wasix"
-
 WASI_EXT_LIB_DIR="$DEPS_DIR/wasm_ext_lib"
 LIB_DIR="$PROJECT_DIR/lib"
 INCLUDE_DIR="$PROJECT_DIR/include"
-
 INSTALL_PREFIX="$PROJECT_DIR/out"
+
+set -e
 
 clean() {
     rm -rf work/
@@ -35,30 +33,20 @@ get_deps() {
         unzip -q -d $WORK_DIR $DEPS_DIR/v$PYTHON_TAG.zip
     fi
 
+    if [[ ! -d $WASI_SDK_PATH ]]; then
+        echo "Downloading wasi sdk..."
+        wget -P ${DEPS_DIR} \
+            -q https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-16/wasi-sdk-16.0-linux.tar.gz
+        tar zxf ${DEPS_DIR}/wasi-sdk-16.0-linux.tar.gz -C ${DEPS_DIR}
+        rm ${DEPS_DIR}/wasi-sdk-16.0-linux.tar.gz && \
+        mv ${DEPS_DIR}/wasi-sdk-16.0 ${DEPS_DIR}/wasi-sdk
+    fi
+
     if [[ ! -d $WASIX_DIR ]]; then
-        echo "Downloading wasix... $WASIX_DIR"
+        echo "Downloading wasix..."
         git clone https://github.com/singlestore-labs/wasix $WASIX_DIR
         cd $WASIX_DIR && make
         cd $PROJECT_DIR
-    fi
-
-    if [[ ! -d $WASI_SDK_PATH ]]; then
-        echo "Downloading wasi sdk..."
-        wget -P $DEPS_DIR \
-            https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-16/wasi-sdk-16.0-linux.tar.gz
-        tar zxf $DEPS_DIR/wasi-sdk-16.0-linux.tar.gz -C $DEPS_DIR
-        rm $DEPS_DIR/wasi-sdk-16.0-linux.tar.gz && \
-        mv $DEPS_DIR/wasi-sdk-16.0 $DEPS_DIR/wasi-sdk
-        export WASI_SDK_PATH=$DEPS_DIR/wasi-sdk
-        export PATH=$PATH:$WASI_SDK_PATH/bin
-    fi
-
-    if [[ ! -d $WABT_PATH ]]; then
-        echo "Downloading wabt..."
-        wget -P $DEPS_DIR -q \
-            https://github.com/WebAssembly/wabt/releases/download/1.0.29/wabt-1.0.29-ubuntu.tar.gz
-        tar -xf $DEPS_DIR/wabt-1.0.29-ubuntu.tar.gz -C $DEPS_DIR
-        rm $DEPS_DIR/wabt-1.0.29-ubuntu.tar.gz
     fi
 
     if [[ ! -d $WASI_EXT_LIB_DIR ]]; then
@@ -77,6 +65,7 @@ build() {
     PYTHON_VER=$(grep '^VERSION=' "${PYTHON_DIR}/configure" | cut -d= -f2)
     PYTHON_MAJOR=$(echo $PYTHON_VER | cut -d. -f1)
     PYTHON_MINOR=$(echo $PYTHON_VER | cut -d. -f2)
+    export PATH="${WASI_SDK_PATH}/bin:${PATH}"
 
     if [[ ! -d "${PYTHON_DIR}/inst/${PYTHON_VER}" ]]; then
         cd "${PYTHON_DIR}"
@@ -108,7 +97,7 @@ build() {
         patch -p1 -N -r- < ${PROJECT_DIR}/patches/python.c.patch
 
         if [[ -f "${PYTHON_DIR}/Modules/_zoneinfo.c" ]]; then
-            patch -p1 -N -r- < ${PROJECT_DIR}/patches/_zoneinfo.c.patch
+            patch -p1 -N -r- < ${PROJECT_DIR}/patches/_zoneinfo.c.patch || true
         fi
 
         if [[ ("$PYTHON_MAJOR" -eq "3") && ("$PYTHON_MINOR" -le "8") ]]; then

@@ -14,10 +14,9 @@ jobs:
           sudo apt-get install -qqy wget curl lsb-release software-properties-common gnupg build-essential libc6-dev libtinfo5 libxkbcommon-dev m4 zip git cmake ninja-build
           wget -P /tmp -q http://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz
           tar zxf /tmp/autoconf-2.71.tar.gz -C /tmp
-          cd /tmp/autoconf-2.71 && ./configure && make && make install
+          (cd /tmp/autoconf-2.71 && ./configure && make && make install)
           wget -P /tmp -q http://ftp.gnu.org/gnu/automake/automake-1.16.tar.gz
           tar zxf /tmp/automake-1.16.tar.gz -C /tmp
-          cd /tmp/automake-1.16 && ./configure && make && make install
+          (cd /tmp/automake-1.16 && ./configure && make && make install)
           ./run.sh get_deps
           ./run.sh build
-
