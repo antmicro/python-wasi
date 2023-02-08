@@ -3,7 +3,7 @@ name: build python
 on: push
 
 jobs:
-  build-library:
+  build-python:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -27,8 +27,3 @@ jobs:
           mkdir dist
           mv out/wasi-python/bin/python3.10.wasm ./dist
           mv out/wasi-python/lib/python3.10/ ./dist
-      - name: Publish
-        uses: actions/upload-artifact@v3
-        with:
-          name: python
-          path: dist

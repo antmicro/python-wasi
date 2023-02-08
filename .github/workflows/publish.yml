@@ -1,0 +1,23 @@
+name: publish python
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        type: string
+        required: true
+        description: 'Release name'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build Python
+        uses: ./.github/workflows/build.yml
+      - name: Release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          title: "${{ inputs.name }}"
+          prerelease: false
+          files: dist/
