@@ -12,6 +12,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
       - name: Build Python
         uses: ./.github/workflows/build.yml
       - name: Release
