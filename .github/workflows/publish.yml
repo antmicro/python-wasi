@@ -15,7 +15,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v3
       - name: Build Python
-        uses: ./.github/workflows/build.yml
+        uses: ./.github/workflows/build.yml@build-python
       - name: Release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
