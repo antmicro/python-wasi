@@ -1,25 +1,34 @@
-name: publish python
+name: publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      name:
-        type: string
-        required: true
-        description: 'Release name'
+  push:
+    tags:
+      - "v*"
 
 jobs:
-  publish:
+  build-python:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
-      - name: Build Python
-        uses: ./.github/workflows/build.yml@build-python
-      - name: Release
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -qqy lsb-release software-properties-common gnupg build-essential libc6-dev libtinfo5 libxkbcommon-dev m4 git cmake ninja-build automake autoconf
+          ./run.sh get_deps
+          ./run.sh build
+      - name: Package
+        run: |
+          rm -rf out/wasi-python/lib/python/config-*
+          mkdir dist
+          cp -Lr out/wasi-python/lib/python ./dist
+          zip -r dist/python.zip dist/python*
+          cp -L out/wasi-python/bin/python3.wasm ./dist
+      - name: Publish
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          title: "${{ inputs.name }}"
           prerelease: false
-          files: dist/
+          files: |
+            dist/*.zip
+            dist/*.wasm

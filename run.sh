@@ -141,8 +141,10 @@ build() {
     make install
 
     rm -f "${PYTHON_DIR}/Modules/Setup.local"
+    echo "out/wasi-python/lib/python${PYTHON_MAJOR}.${PYTHON_MINOR}" "out/wasi-python/lib/python"
 
     cd $PROJECT_DIR
+    ln -s "python${PYTHON_MAJOR}.${PYTHON_MINOR}" "out/wasi-python/lib/python"
 }
 
 "$@"
