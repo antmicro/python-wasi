@@ -21,8 +21,8 @@ jobs:
         run: |
           rm -rf out/wasi-python/lib/python/config-*
           mkdir dist
-          cp -Lr out/wasi-python/lib/python ./dist
-          zip -r dist/python.zip dist/python*
+          cp -Lr out/wasi-python/lib/python ./dist/$(readlink out/wasi-python/lib/python)
+          (cd dist && zip -r python.zip python*)
           cp -L out/wasi-python/bin/python3.wasm ./dist
       - name: Publish
         uses: "marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0"
