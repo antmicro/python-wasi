@@ -1,0 +1,15 @@
+diff --git a/include/stdio.h b/include/stdio.h
+index 3315a9a..6fcfb33 100644
+--- a/include/stdio.h
++++ b/include/stdio.h
+@@ -6,7 +6,9 @@
+ 
+ #define P_tmpdir 0
+ #define L_tmpnam 0
+-#define TMP_MAX 0
++#ifndef TMP_MAX
++    #define TMP_MAX 10000
++#endif
+ 
+ char *tmpnam(char *s);
+ FILE *tmpfile(void);

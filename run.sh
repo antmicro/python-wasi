@@ -46,7 +46,7 @@ get_deps() {
     if [[ ! -d $WASIX_DIR ]]; then
         echo "Downloading wasix..."
         git clone https://github.com/singlestore-labs/wasix $WASIX_DIR
-        cd $WASIX_DIR && make
+        cd $WASIX_DIR && git apply $PROJECT_DIR/patches/wasix_tmp_max.patch; make
         cd $PROJECT_DIR
     fi
 
