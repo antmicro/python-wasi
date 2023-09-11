@@ -7,7 +7,8 @@ DEPS_DIR="$PROJECT_DIR/deps"
 WORK_DIR="$PROJECT_DIR/work"
 PYTHON_DIR="$WORK_DIR/cpython-$PYTHON_TAG"
 WASIX_DIR="$DEPS_DIR/wasix"
-WASI_EXT_LIB_DIR="$DEPS_DIR/wasm_ext_lib"
+WASI_EXT_LIB_DIR="$DEPS_DIR/wasi_ext_lib"
+WASI_EXT_LIB_SHA="7d80d5c4b204dce8c7b14980b68b60f5184e2989"
 LIB_DIR="$PROJECT_DIR/lib"
 INCLUDE_DIR="$PROJECT_DIR/include"
 INSTALL_PREFIX="$PROJECT_DIR/out"
@@ -52,7 +53,10 @@ get_deps() {
     if [[ ! -d $WASI_EXT_LIB_DIR ]]; then
         echo "Downloading wasi ext lib"
         git clone https://github.com/antmicro/wasi_ext_lib $WASI_EXT_LIB_DIR
-        cd $WASI_EXT_LIB_DIR/c_lib && make
+        cd $WASI_EXT_LIB_DIR
+        git checkout "$WASI_EXT_LIB_SHA"
+        cd c_lib
+        make
         cd $PROJECT_DIR
     fi
 
