@@ -141,7 +141,7 @@ build() {
  	       --prefix=${INSTALL_PREFIX}/wasi-python
     make clean
     rm -f python.wasm
-    make -j
+    make -j$(nproc)
     make install
 
     rm -f "${PYTHON_DIR}/Modules/Setup.local"
