@@ -98,7 +98,8 @@ build() {
 
         # Apply patches (some of them don't need to match)
         patch -p1 -N -r- < ${PROJECT_DIR}/patches/configure.ac.patch || true
-        patch -p1 -N -r- < ${PROJECT_DIR}/patches/python.c.patch
+        patch -p1 -N -r- < ${PROJECT_DIR}/patches/python.c.patch || true
+        patch -p1 -N -r- < ${PROJECT_DIR}/patches/tempfile.patch
 
         if [[ -f "${PYTHON_DIR}/Modules/_zoneinfo.c" ]]; then
             patch -p1 -N -r- < ${PROJECT_DIR}/patches/_zoneinfo.c.patch || true

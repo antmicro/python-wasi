@@ -1,0 +1,13 @@
+diff --git a/Lib/tempfile.py b/Lib/tempfile.py
+index 96da930..fa83843 100644
+--- a/Lib/tempfile.py
++++ b/Lib/tempfile.py
+@@ -572,7 +572,7 @@ def opener(*args):
+             _os.unlink(name)
+         raise
+ 
+-if _os.name != 'posix' or _sys.platform == 'cygwin':
++if _os.name != 'posix' or _sys.platform == 'cygwin' or _sys.platform == 'wasi':
+     # On non-POSIX and Cygwin systems, assume that we cannot unlink a file
+     # while it is open.
+     TemporaryFile = NamedTemporaryFile
